@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Нерюнгри — Глобальный ИИ</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #1e1e24; color: #ffffff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .chat-container { display: flex; width: 450px; height: 600px; background: #252532; border-radius: 12px; flex-direction: column; box-shadow: 0 8px 24px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: #2b2b3a; padding: 15px; text-align: center; border-bottom: 2px solid #20202b; }
+        .header h3 { margin: 0; color: #ffffff; font-size: 20px; }
+        .messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #252532; }
+        .msg { padding: 10px 14px; border-radius: 8px; max-width: 75%; word-wrap: break-word; line-height: 1.4; font-size: 15px; }
+        .user { background: #007acc; color: #ffffff; align-self: flex-end; }
+        .bot { background: #2f2f42; color: #ffffff; align-self: flex-start; border-left: 4px solid #00f0ff; white-space: pre-wrap; }
+        .input-area { display: flex; padding: 10px; background: #1e1e24; gap: 10px; }
+        input { flex: 1; padding: 12px; border: 1px solid #2f2f42; border-radius: 6px; background: #252532; color: #ffffff; outline: none; }
+        button { padding: 12px 20px; border: none; border-radius: 6px; background: #007acc; color: #ffffff; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="header">
+        <h3>🤖 ИИ Помощник: Нерюнгри</h3>
+        <small>Глобальная версия | Для ПК и всех Айфонов</small>
+    </div>
+    <div class="messages" id="chat-box">
+        <div class="msg bot">🤖 Привет! Я — обновлённая нейросеть «Нерюнгри». Теперь я работаю через мощное облако, знаю абсолютно всё на свете и доступна на любых телефонах! Задавай вопрос.</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Напиши мне..." onkeydown="if(event.key==='Enter') sendMsg()">
+        <button onclick="sendMsg()">Отправить</button>
+    </div>
+</div>
+
+<script>
+async function sendMsg() {
+    const input = document.getElementById('user-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const chatBox = document.getElementById('chat-box');
+    chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+    input.value = '';
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const botLoadingId = 'loading-' + Date.now();
+    chatBox.innerHTML += `<div class="msg bot" id="${botLoadingId}">🤖 Пишу ответ...</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const botMessageElement = document.getElementById(botLoadingId);
+
+    try {
+        // Запрос идет на скрытый бэкенд-маршрут Netlify
+        const response = await fetch('/.netlify/functions/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: text })
+        });
+
+        if (!response.ok) {
+            throw new Error('Ошибка безопасного сервера');
+        }
+
+        const data = await response.json();
+        
+        // Выводим чистый ответ от облачной нейросети
+        botMessageElement.innerText = data.answer;
+
+    } catch (error) {
+        botMessageElement.innerText = "❌ Ошибка связи с сервером. Номер техподдержки: +7(9381061178)";
+    }
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+</script>
+</body>
+</html>
